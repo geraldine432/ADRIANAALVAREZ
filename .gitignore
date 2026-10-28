@@ -1,0 +1,20 @@
+# Secrets and local configuration
+**/.env
+**/.env.*
+!**/.env.example
+
+# Dependencies and generated output
+**/vendor/
+**/node_modules/
+**/dist/
+**/.angular/
+**/coverage/
+
+# Local framework and editor state
+**/storage/logs/*.log
+**/.phpunit.cache/
+**/.phpunit.result.cache
+**/.vscode/
+**/.idea/
+**/Thumbs.db
+**/.DS_Store
