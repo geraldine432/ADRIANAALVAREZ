@@ -1,4 +1,4 @@
-# Sistema de ventas
+# Sistema ADRIANAALVAREZ — prueba técnica
 
 Aplicación de gestión de ventas compuesta por una API REST en Laravel (`api-sales`) y una interfaz web en Angular (`app-sales`). La API permite consultar el catálogo, registrar ventas con sus productos y cantidades, consultar ventas y eliminarlas. Al registrar una venta valida el stock, calcula los importes con los precios guardados y actualiza el inventario dentro de una transacción. La interfaz Angular presenta la aplicación web.
 
@@ -117,3 +117,7 @@ app-sales/   Aplicación web Angular
 ```
 
 Cada aplicación conserva también su propio `README.md` con información del framework.
+=======
+# ADRIANAALVAREZ
+PRUEBA TECNICA
+>>>>>>> b5601123179a6e3db3978bdc4a15e86e088c13d8
