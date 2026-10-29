@@ -1,35 +1,10 @@
-@import 'variables';
-
-.navbar {
-  background-color: $my-dark-color;
-
-  .navbar-brand {
-    font-weight: bold;
-
-    span {
-      color: $my-secondary-light-color;
-    }
-  }
-
-  .nav-link {
-    position: relative;
-    padding-left: 0.5rem;
-
-    &.active {
-      text-shadow: 0 0 6px rgba(52, 152, 219, 0.80);
-    }
-
-    &.active::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: -2px;
-      transform: translateY(-50%);
-      display: inline-block;
-      height: 4px;
-      width: 4px;
-      background-color: $my-primary-color;
-      border-radius: 50%;
-    }
-  }
-}
+:host { display: block; }
+.site-nav { background: #fff; border-bottom: 1px solid #eeece6; }
+.nav-inner { max-width: 1320px; height: 69px; margin: 0 auto; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; }
+.site-brand { display: flex; align-items: center; gap: 10px; color: #29312c; text-decoration: none; font-size: 11px; line-height: 1.2; letter-spacing: 1.4px; font-weight: 700; }
+.site-brand > span:last-child { display: flex; flex-direction: column; gap: 4px; }.site-brand small { color: #999990; font-size: 8px; letter-spacing: 1.15px; font-weight: 500; }
+.brand-symbol { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid #e8e0d3; border-radius: 50%; color: #a7835c; font-size: 17px; }
+.nav-links { height: 100%; display: flex; align-items: center; gap: 29px; }.nav-links a { position: relative; height: 100%; display: inline-flex; align-items: center; color: #747872; text-decoration: none; font-size: 11px; transition: color .15s ease; }.nav-links a:hover { color: #29312c; }.nav-links a::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; transform: scaleX(0); background: #b78d63; transition: transform .15s ease; }.nav-links a:hover::after { transform: scaleX(1); }
+.nav-status { display: inline-flex; align-items: center; gap: 7px; padding: 8px 11px; border: 1px solid #e9e7e1; border-radius: 3px; color: #70776f; text-decoration: none; font-size: 9px; }.nav-status > span { width: 6px; height: 6px; border-radius: 50%; background: #8daf91; }.nav-status i { font-size: 12px; color: #999b94; }
+@media (max-width: 700px) { .nav-inner { height: 61px; padding: 0 16px; }.nav-links { gap: 13px; }.nav-links a { font-size: 9px; }.nav-status { font-size: 0; padding: 8px; gap: 0; }.nav-status i { display: none; }.nav-status > span { width: 7px; height: 7px; } }
+@media (max-width: 420px) { .nav-links { gap: 9px; }.nav-links a { font-size: 8px; }.brand-symbol { width: 30px; height: 30px; }.site-brand { gap: 6px; font-size: 9px; }.site-brand small { font-size: 7px; } }

@@ -1,0 +1,60 @@
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: mercatech_db
+      MYSQL_USER: mercatech
+      MYSQL_PASSWORD: mercatech_local
+      MYSQL_ROOT_PASSWORD: root_local_only
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot_local_only"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15m
+
+  api:
+    build:
+      context: ./api-sales
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      APP_NAME: Mercatech
+      APP_ENV: local
+      APP_DEBUG: "false"
+      APP_URL: http://localhost:8080
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: mercatech_db
+      DB_USERNAME: mercatech
+      DB_PASSWORD: mercatech_local
+      CACHE_STORE: file
+      SESSION_DRIVER: file
+      QUEUE_CONNECTION: sync
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "php", "-r", "$$r=@file_get_contents('http://127.0.0.1/api/test'); exit($$r === false ? 1 : 0);"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 30s
+
+  web:
+    build:
+      context: ./app-sales
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  mysql_data:

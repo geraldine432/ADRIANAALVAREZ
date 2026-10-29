@@ -16,11 +16,15 @@ class SaleController extends Controller
         $sales = Sale::with('details.product')->latest()->get()->map(fn (Sale $sale) => [
             'id' => $sale->id,
             'total' => $sale->total,
+            'total_discount' => $sale->total_discount,
             'created_at' => $sale->created_at?->toDateString(),
             'details' => $sale->details->map(fn ($detail) => [
                 'product' => $detail->product?->name,
                 'quantity' => $detail->quantity,
                 'subtotal' => $detail->subtotal,
+                'discount_percent' => $detail->discount_percent,
+                'discount_amount' => $detail->discount_amount,
+                'subtotal_with_discount' => round(((int) round((float) $detail->subtotal * 100) - (int) round((float) $detail->discount_amount * 100)) / 100, 2),
             ])->values(),
         ]);
 
@@ -34,6 +38,7 @@ class SaleController extends Controller
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'integer', 'distinct', 'exists:products,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.discount_percent' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0', 'max:10'],
         ]);
         if ($validator->fails()) {
             return response()->json(['message' => 'Los datos enviados no son validos', 'errors' => $validator->errors()], 422);
@@ -52,18 +57,30 @@ class SaleController extends Controller
                 }
             }
 
-            $totalInCents = $items->sum(fn ($item) => (int) round((float) $products[$item['product_id']]->price * 100) * $item['quantity']);
-            $total = $totalInCents / 100;
-            $sale = Sale::create(['user_id' => $validated['user_id'], 'total' => $total]);
+            $calculatedItems = $items->map(function ($item) use ($products) {
+                $subtotalCents = (int) round((float) $products[$item['product_id']]->price * 100) * $item['quantity'];
+                $discountPercent = (float) ($item['discount_percent'] ?? 0);
+                $discountCents = (int) round($subtotalCents * $discountPercent / 100);
 
-            foreach ($items as $item) {
+                return [...$item, 'subtotal_cents' => $subtotalCents, 'discount_percent' => $discountPercent, 'discount_cents' => $discountCents];
+            });
+            $discountCents = $calculatedItems->sum('discount_cents');
+            $totalCents = $calculatedItems->sum(fn ($item) => $item['subtotal_cents'] - $item['discount_cents']);
+            $sale = Sale::create([
+                'user_id' => $validated['user_id'],
+                'total' => $totalCents / 100,
+                'total_discount' => $discountCents / 100,
+            ]);
+
+            foreach ($calculatedItems as $item) {
                 $product = $products[$item['product_id']];
-                $subtotal = ((int) round((float) $product->price * 100) * $item['quantity']) / 100;
                 $sale->details()->create([
                     'product_id' => $product->id,
                     'quantity' => $item['quantity'],
                     'price' => $product->price,
-                    'subtotal' => $subtotal,
+                    'subtotal' => $item['subtotal_cents'] / 100,
+                    'discount_percent' => $item['discount_percent'],
+                    'discount_amount' => $item['discount_cents'] / 100,
                 ]);
                 $product->decrement('stock', $item['quantity']);
             }
@@ -82,6 +99,7 @@ class SaleController extends Controller
             'message' => 'Venta creada correctamente',
             'sale_id' => $sale->id,
             'total' => $sale->total,
+            'total_discount' => $sale->total_discount,
         ], 201);
     }
 

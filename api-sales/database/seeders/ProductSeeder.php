@@ -12,7 +12,7 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
-        Product::insert([
+        $products = [
             [
                 'name'  => 'Laptop Lenovo ThinkPad',
                 'price' => 7500.00,
@@ -73,6 +73,10 @@ class ProductSeeder extends Seeder
                 'stock' => 9000,
                 'image' => 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04'
             ],
-        ]);
+        ];
+
+        foreach ($products as $product) {
+            Product::firstOrCreate(['name' => $product['name']], $product);
+        }
     }
 }

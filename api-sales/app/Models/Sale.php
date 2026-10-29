@@ -11,7 +11,8 @@ class Sale extends Model
 
     protected $fillable = [
         'user_id',
-        'total'
+        'total',
+        'total_discount'
     ];
 
     public function details()

@@ -1,3 +1,64 @@
-<section class="d-flex align-items-center justify-content-center flex-column text-center">
-  <h1 class="fw-bold mb-3">Bienvenid@ </h1>
-</section>
+<main class="dashboard">
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow"><span class="live-dot"></span> PANEL DE VENTAS</span>
+      <h1>Tu negocio,<br><span>en movimiento.</span></h1>
+      <p>Gestiona tu catálogo, registra ventas y mantén el inventario bajo control desde un solo lugar.</p>
+      <a class="hero-link" href="#catalogo">Explorar catálogo <i class="ri-arrow-down-line"></i></a>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
+      <div class="art-card"><i class="ri-shopping-bag-3-line"></i><span>VENTA<br>REGISTRADA</span><strong>+1</strong></div>
+      <div class="art-spark spark-one">✳</div><div class="art-spark spark-two">✳</div>
+      <div class="art-caption">Simple. Ágil. En control.</div>
+    </div>
+    <div class="hero-index">01 <span>/ 03</span></div>
+  </section>
+
+  <div class="alerts" *ngIf="errorMessage || successMessage" role="status" aria-live="polite">
+    <div class="alert-message error" *ngIf="errorMessage"><i class="ri-error-warning-line"></i><span>{{ errorMessage }}</span><button class="retry-button" type="button" (click)="retryConnection()"><i class="ri-refresh-line"></i> Reintentar</button><button type="button" (click)="errorMessage = ''" aria-label="Cerrar">×</button></div>
+    <div class="alert-message success" *ngIf="successMessage"><i class="ri-checkbox-circle-line"></i>{{ successMessage }}<button type="button" (click)="successMessage = ''" aria-label="Cerrar">×</button></div>
+  </div>
+
+  <section class="stats" aria-label="Resumen del negocio">
+    <article class="stat-card"><span class="stat-icon peach"><i class="ri-box-3-line"></i></span><div><span class="stat-label">Productos en catálogo</span><strong>{{ loadingProducts ? '…' : products.length }}</strong></div><span class="stat-note">referencias</span></article>
+    <article class="stat-card"><span class="stat-icon lavender"><i class="ri-stack-line"></i></span><div><span class="stat-label">Unidades disponibles</span><strong>{{ loadingProducts ? '…' : totalUnits | number }}</strong></div><span class="stat-note">en inventario</span></article>
+    <article class="stat-card"><span class="stat-icon mint"><i class="ri-receipt-line"></i></span><div><span class="stat-label">Ventas realizadas</span><strong>{{ loadingSales ? '…' : sales.length }}</strong></div><span class="stat-note">registradas</span></article>
+    <article class="stat-card"><span class="stat-icon butter"><i class="ri-funds-line"></i></span><div><span class="stat-label">Total vendido</span><strong class="revenue">{{ loadingSales ? '…' : formatCurrency(totalRevenue) }}</strong></div><span class="stat-note">acumulado</span></article>
+  </section>
+
+  <section class="catalog-section" id="catalogo">
+    <div class="section-heading"><div><span class="eyebrow">LO QUE TIENES</span><h2>Catálogo de productos<span class="heading-dot">.</span></h2><p>Selecciona productos para armar una nueva venta.</p></div><span class="section-count"><span class="live-dot"></span> {{ products.length }} productos</span></div>
+    <div class="loading-state" *ngIf="loadingProducts"><span class="spinner"></span> Cargando catálogo…</div>
+    <div class="empty-state" *ngIf="!loadingProducts && products.length === 0"><i class="ri-inbox-line"></i><strong>El catálogo está vacío</strong><span>Revisa la conexión con la API e importa los productos de ejemplo.</span></div>
+    <div class="product-grid" *ngIf="!loadingProducts && products.length">
+      <article class="product-card" *ngFor="let product of products; let index = index">
+        <div class="product-visual" [class]="'product-visual tone-' + (index % 5)">
+          <img *ngIf="product.image" [src]="product.image" [alt]="product.name" loading="lazy" (error)="$any($event.target).style.display='none'">
+          <i class="ri-computer-line" *ngIf="index % 5 === 0"></i><i class="ri-mouse-line" *ngIf="index % 5 === 1"></i><i class="ri-keyboard-box-line" *ngIf="index % 5 === 2"></i><i class="ri-headphone-line" *ngIf="index % 5 === 3"></i><i class="ri-device-line" *ngIf="index % 5 === 4"></i>
+          <span class="product-number">{{ (index + 1).toString().padStart(2, '0') }}</span>
+        </div>
+        <div class="product-info"><span class="stock-pill" [class.low-stock]="product.stock <= 5"><span></span>{{ product.stock > 0 ? product.stock + ' disponibles' : 'Agotado' }}</span><h3>{{ product.name }}</h3><div class="product-bottom"><strong>{{ formatCurrency(product.price) }}</strong><button type="button" [disabled]="product.stock < 1" (click)="addToCart(product)" [attr.aria-label]="'Agregar ' + product.name"><i class="ri-add-line"></i></button></div></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="checkout-layout" id="nueva-venta">
+    <div class="checkout-copy"><span class="eyebrow">SIGUIENTE PASO</span><h2>Nueva venta<span class="heading-dot">.</span></h2><p>Añade los productos del catálogo a tu carrito. El servidor verificará el stock y calculará el total con los precios vigentes.</p><div class="checkout-perks"><span><i class="ri-shield-check-line"></i> Stock validado</span><span><i class="ri-lock-line"></i> Registro seguro</span></div></div>
+    <div class="cart-card">
+      <div class="cart-header"><div><span class="eyebrow">RESUMEN DEL PEDIDO</span><h3>Tu carrito <span class="cart-count">{{ cartCount }}</span></h3></div><i class="ri-shopping-basket-2-line cart-header-icon"></i></div>
+      <div class="cart-empty" *ngIf="!cart.length"><span class="empty-basket"><i class="ri-shopping-basket-line"></i></span><strong>Tu carrito está esperando</strong><span>Agrega productos del catálogo para empezar.</span></div>
+      <div class="cart-items" *ngIf="cart.length"><div class="cart-item" *ngFor="let item of cart"><div class="cart-product-icon"><i class="ri-cube-line"></i></div><div class="cart-product-name"><strong>{{ item.product.name }}</strong><span>{{ formatCurrency(item.product.price) }} c/u</span><label class="discount-control"><i class="ri-price-tag-3-line"></i><input type="number" min="0" max="10" step="1" [value]="item.discountPercent" (input)="setDiscount(item, $event)" aria-label="Descuento porcentual"> % dto.</label></div><div class="quantity-control"><button type="button" (click)="changeQuantity(item, -1)" aria-label="Reducir cantidad">−</button><span>{{ item.quantity }}</span><button type="button" (click)="changeQuantity(item, 1)" aria-label="Aumentar cantidad">+</button></div><strong class="line-total" [class.discounted-price]="item.discountPercent > 0">{{ formatCurrency(item.product.price * item.quantity - (item.product.price * item.quantity * item.discountPercent / 100)) }}</strong><button class="remove-item" type="button" (click)="removeFromCart(item)" aria-label="Quitar producto"><i class="ri-close-line"></i></button></div></div>
+      <div class="cart-footer"><button class="order-discount-button" type="button" *ngIf="cart.length" (click)="toggleOrderDiscount()"><i class="ri-price-tag-3-line"></i> {{ orderDiscountApplied ? 'Quitar descuento del 10%' : 'Aplicar descuento del 10%' }}</button><div class="total-line subtotal-line"><span><i class="ri-shopping-bag-3-line"></i> Subtotal</span><strong>{{ formatCurrency(cartTotal + cartDiscount) }}</strong></div><div class="total-line discount-line" *ngIf="cartDiscount > 0"><span><i class="ri-price-tag-3-line"></i> Descuentos aplicados</span><strong>− {{ formatCurrency(cartDiscount) }}</strong></div><div class="total-line"><span>Total estimado</span><strong>{{ formatCurrency(cartTotal) }}</strong></div><p>El total final se calcula en el servidor.</p><button class="submit-sale" type="button" [disabled]="!cart.length || submitting" (click)="createSale()"><span>{{ submitting ? 'Registrando venta…' : 'Confirmar venta' }}</span><i [class]="submitting ? 'ri-loader-4-line spin' : 'ri-arrow-right-line'"></i></button></div>
+    </div>
+  </section>
+
+  <section class="sales-section" id="historial">
+    <div class="section-heading"><div><span class="eyebrow">MOVIMIENTOS RECIENTES</span><h2>Historial de ventas<span class="heading-dot">.</span></h2><p>Consulta el detalle o elimina una venta para devolver el stock.</p></div><button type="button" class="refresh-button" (click)="loadSales(); loadProducts()"><i class="ri-refresh-line"></i> Actualizar</button></div>
+    <div class="loading-state" *ngIf="loadingSales"><span class="spinner"></span> Cargando ventas…</div>
+    <div class="empty-state sales-empty" *ngIf="!loadingSales && !sales.length"><i class="ri-file-list-3-line"></i><strong>Aún no hay ventas</strong><span>Cuando registres una venta, aparecerá aquí con sus productos y cantidades.</span></div>
+    <div class="sales-list" *ngIf="!loadingSales && sales.length"><article class="sale-card" *ngFor="let sale of sales"><div class="sale-main"><span class="sale-icon"><i class="ri-receipt-2-line"></i></span><div><span class="sale-id">VENTA #{{ sale.id }}</span><strong>{{ formatCurrency(sale.total) }}</strong></div></div><div class="sale-date"><span class="sale-savings" *ngIf="sale.total_discount > 0"><i class="ri-price-tag-3-line"></i> Ahorraste {{ formatCurrency(sale.total_discount) }}</span><i class="ri-calendar-line"></i>{{ sale.created_at | date:'d MMM y' }}</div><div class="sale-details"><span *ngFor="let detail of sale.details"><i class="ri-box-3-line"></i> {{ detail.quantity }} × {{ detail.product }} <small *ngIf="detail.discount_percent > 0">−{{ detail.discount_percent }}%</small> <b>{{ formatCurrency(detail.subtotal_with_discount) }}</b></span></div><button class="delete-sale" type="button" (click)="deleteSale(sale)" [attr.aria-label]="'Eliminar venta ' + sale.id" title="Eliminar y devolver stock"><i class="ri-delete-bin-6-line"></i><span>Eliminar</span></button></article></div>
+  </section>
+
+  <footer class="page-footer"><a class="footer-brand" href="#"><span class="brand-mark"><i class="ri-store-2-line"></i></span> MERCATECH</a><span>Hecho para vender mejor.</span><a href="#catalogo">Volver arriba <i class="ri-arrow-up-line"></i></a></footer>
+</main>

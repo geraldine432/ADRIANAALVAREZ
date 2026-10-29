@@ -2,10 +2,88 @@
 @import 'bootstrap/scss/bootstrap';
 @import 'assets/scss/table';
 @import 'assets/scss/button';
+@import 'assets/scss/dashboard';
 @import 'toastify-js/src/toastify';
+
+body {
+  margin: 0;
+  background: #f8f7f3;
+  color: #212426;
+  font-family: 'DM Sans', 'Segoe UI', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+html { scroll-behavior: smooth; }
 
 .section-title {
   margin: 0;
   font-weight: bold;
   color: $my-dark-color;
 }
+// A warmer, more energetic identity with clear focus and motion cues.
+:root { --ink: #172b36; --accent: #087f73; --accent-bright: #12a594; --coral: #f18a68; }
+body { background: #f3f7f5; color: var(--ink); }
+.site-nav { position: sticky; top: 0; z-index: 20; background: rgba(255, 255, 255, .92); backdrop-filter: blur(14px); border-color: #dce8e4; }
+.brand-symbol { border-radius: 11px; color: #fff; border: 0; background: linear-gradient(145deg, #0b8277, #16ad98); box-shadow: 0 6px 15px #087f7330; }
+.nav-status { border-radius: 999px; }
+.nav-status > span { animation: status-pulse 1.8s infinite; }
+.nav-status.api-offline > span { background: #d97762; }
+.nav-status.api-offline { color: #9a5145; }
+.dashboard { max-width: 1400px; }
+.hero { min-height: 390px; border-radius: 18px; background: radial-gradient(ellipse at 78% 20%, #235f5b 0, transparent 38%), linear-gradient(120deg, #102b34 0%, #174b4b 62%, #176b60 100%); box-shadow: 0 20px 50px #173c3b20; }
+.hero h1 span { color: #82e3ce; }
+.live-dot { background: #65e3bf; box-shadow: 0 0 0 4px #65e3bf25; }
+.art-orbit { animation: orbit-breathe 7s ease-in-out infinite; }
+.art-card { border-radius: 16px; background: linear-gradient(145deg, #f8d5ab, #f3a581); animation: card-float 5s ease-in-out infinite; }
+.art-spark { animation: spark 2.5s ease-in-out infinite alternate; }
+.stat-card, .product-card, .cart-card, .sale-card { border-radius: 13px; border-color: #dce8e4; box-shadow: 0 7px 22px #23484109; }
+.stat-card { transition: transform .2s ease, box-shadow .2s ease; }
+.stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px #23484114; }
+.stat-icon { border-radius: 11px; }
+.product-card:hover { box-shadow: 0 14px 28px #173c3b1a; }
+.product-visual { height: 165px; }
+.product-info h3 { font-size: 13px; }
+.product-bottom button, .submit-sale { border-radius: 9px; }
+.product-bottom button:hover:not(:disabled), .submit-sale { background: var(--accent); }
+.submit-sale:hover:not(:disabled) { background: #075c55; }
+.checkout-layout { background: linear-gradient(125deg, #e3f0ec, #eff5ef); }
+.cart-card { box-shadow: 0 14px 35px #173c3b12; }
+.section-count { border-radius: 999px; }
+.sale-card { transition: transform .18s ease, box-shadow .18s ease; }
+.sale-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px #173c3b10; }
+.alert-message { border-radius: 10px; }
+.alert-message.error { display: flex; }
+.retry-button { margin-left: auto !important; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #e3b5ae !important; border-radius: 7px; padding: 7px 10px; background: #fff9f7 !important; color: #8f3931; font-size: 11px !important; white-space: nowrap; }
+.retry-button + button { margin-left: 4px; }
+@keyframes status-pulse { 50% { box-shadow: 0 0 0 6px #8daf9122; } }
+@keyframes orbit-breathe { 50% { transform: translate(-50%, -50%) scale(1.04); opacity: .7; } }
+@keyframes card-float { 50% { translate: 0 -7px; rotate: 2deg; } }
+@keyframes spark { to { opacity: .45; transform: scale(.78) rotate(25deg); } }
+@media (max-width: 700px) { .product-visual { height: 135px; } .hero { border-radius: 14px; } }
+@media (prefers-reduced-motion: reduce) { .art-card, .art-orbit, .art-spark, .nav-status > span { animation: none; } }
+
+/* Discount controls and sales highlights */
+.discount-control { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; color: #078779; font-size: 9px; font-weight: 700; }
+.discount-control i { font-size: 12px; }
+.discount-control input { width: 39px; padding: 2px 3px; border: 1px solid #c7e4dc; border-radius: 6px; background: #f2fbf7; color: #087f73; text-align: center; font-size: 10px; font-weight: 700; }
+.discount-control input:focus { outline: 2px solid #12a59455; border-color: #12a594; }
+.cart-item { grid-template-columns: 30px minmax(100px, 1fr) auto auto 20px; }
+.cart-product-name { align-self: center; }
+.line-total.discounted-price { color: #087f73; }
+.discount-line { margin: 7px 0; color: #087f73; }
+.discount-line span, .discount-line strong { color: #087f73 !important; }
+.discount-line strong { font: 600 13px 'DM Sans', sans-serif !important; }
+.subtotal-line { color: #92958f; }
+.subtotal-line strong { color: #92958f; font: 500 14px 'DM Sans', sans-serif !important; text-decoration: line-through; }
+.sale-savings { display: inline-flex; align-items: center; gap: 4px; margin-right: 9px; padding: 5px 8px; border-radius: 999px; background: #e7f7f0; color: #078779; font-size: 9px; font-weight: 700; }
+.sale-details small { margin: 0 2px; color: #078779; font-weight: 700; }
+.sale-details > span > i { color: #087f73; }
+.site-brand { color: #173d3a; }
+.nav-links a:hover { color: #087f73; }
+.nav-links a::after { background: #12a594; }
+.refresh-button:hover { border-color: #12a594; color: #087f73; }
+@media (max-width: 700px) { .cart-item { grid-template-columns: 27px minmax(80px, 1fr) auto auto 16px; } .sale-savings { margin: 0 0 6px; } }
+
+.order-discount-button { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 7px; margin: 0 0 12px; padding: 9px 12px; border: 1px solid #c7e4dc; border-radius: 6px; background: #f2fbf7; color: #087f73; font: 600 11px 'DM Sans', sans-serif; cursor: pointer; }
+.order-discount-button:hover { background: #e7f7f0; border-color: #12a594; }
+.order-discount-button i { font-size: 14px; }

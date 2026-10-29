@@ -1,123 +1,107 @@
-# Sistema ADRIANAALVAREZ — prueba técnica
+﻿# Mercatech: ventas e inventario
 
-Aplicación de gestión de ventas compuesta por una API REST en Laravel (`api-sales`) y una interfaz web en Angular (`app-sales`). La API permite consultar el catálogo, registrar ventas con sus productos y cantidades, consultar ventas y eliminarlas. Al registrar una venta valida el stock, calcula los importes con los precios guardados y actualiza el inventario dentro de una transacción. La interfaz Angular presenta la aplicación web.
+Aplicación web para consultar productos, registrar ventas con descuentos y administrar el inventario. La interfaz está hecha con Angular 16, la API con Laravel 11 y la base de datos con MySQL 8.
 
 ## Requisitos
 
-- PHP 8.2 o superior y Composer 2.
-- MySQL 8 (o una versión compatible con Laravel 11).
-- Node.js 18.13 o superior y npm (Angular 16).
-- Git.
+La forma más sencilla de ejecutar el proyecto es con Docker. Instala:
 
-Verifica las instalaciones con `php -v`, `composer --version`, `mysql --version`, `node -v` y `npm -v`.
+- Docker Desktop (incluye Docker Compose).
+- Git, para clonar el repositorio.
 
-## Descargar el proyecto
+Para trabajar sin Docker también necesitarás PHP 8.2 o superior con las extensiones de Laravel y `pdo_mysql`, Composer, Node.js 20 con npm y MySQL 8.
 
-```bash
+## Instalación y ejecución con Docker
+
+Desde la carpeta raíz del proyecto, donde está `docker-compose.yml`:
+
+```powershell
 git clone https://github.com/geraldine432/ADRIANAALVAREZ.git
 cd ADRIANAALVAREZ
+docker compose up --build -d
 ```
 
-Los comandos siguientes se ejecutan desde la carpeta raíz del repositorio, salvo que se indique otra carpeta.
+Espera a que los servicios estén listos y abre [http://localhost:8080](http://localhost:8080). Docker Compose construye Angular y Laravel, inicia MySQL, aplica las migraciones y carga el usuario demo y los productos de ejemplo. La API queda disponible bajo `http://localhost:8080/api`.
 
-## Configurar y ejecutar la API
+Comandos útiles:
 
-1. Crea una base de datos vacía en MySQL. Por ejemplo, desde el cliente de MySQL:
+```powershell
+docker compose ps                  # estado de los contenedores
+docker compose logs -f             # registros de todos los servicios
+docker compose logs -f api         # registros de Laravel
+docker compose down                # detener y conservar los datos
+docker compose down -v             # detener y borrar también la base de datos
+```
 
-   ```sql
-   CREATE DATABASE mercatech_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   ```
+`docker compose down -v` elimina el volumen de MySQL y, con él, las ventas y cambios de inventario guardados.
 
-2. Instala las dependencias PHP y crea la configuración local:
+## Ejecución para desarrollo local (sin Docker)
 
-   ```bash
+1. Crea una base de datos MySQL llamada `mercatech_db` y configura el usuario y contraseña en `api-sales/.env` (`DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME` y `DB_PASSWORD`). Puedes partir de `api-sales/.env.example`.
+2. En una terminal, instala y prepara Laravel:
+
+   ```powershell
    cd api-sales
+   Copy-Item .env.example .env
    composer install
-   cp .env.example .env
-   ```
-
-   En Windows PowerShell, usa `Copy-Item .env.example .env` en lugar de `cp`.
-
-3. Edita `api-sales/.env` y configura `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME` y `DB_PASSWORD` para tu MySQL local. La configuración de ejemplo usa `mercatech_db`, el usuario `root` y contraseña vacía. No compartas tu archivo `.env`.
-
-4. Genera la clave de Laravel, crea las tablas y carga los productos iniciales:
-
-   ```bash
    php artisan key:generate
    php artisan migrate --seed
-   ```
-
-5. Inicia el servidor de desarrollo:
-
-   ```bash
    php artisan serve
    ```
 
-   La API quedará disponible en `http://127.0.0.1:8000/api`. Puedes comprobar que responde en `http://127.0.0.1:8000/api/test`.
+   La API se ejecutará en `http://127.0.0.1:8000`. Si `Copy-Item` indica que `.env` ya existe, conserva el archivo y edítalo para ajustar la conexión a MySQL.
+3. En otra terminal, instala e inicia Angular:
 
-## Configurar y ejecutar la interfaz Angular
+   ```powershell
+   cd app-sales
+   npm ci
+   npm start
+   ```
 
-Abre otra terminal desde la raíz del repositorio:
+   Abre la dirección que Angular muestre en la terminal (normalmente `http://localhost:4200`). El proxy de desarrollo reenvía `/api` a Laravel en el puerto 8000.
 
-```bash
-cd app-sales
-npm ci
-npm start
-```
+Para compilar Angular para producción: `cd app-sales; npm run build`. Para ejecutar las pruebas configuradas de Angular: `cd app-sales; npm test`. Las pruebas de Laravel se ejecutan con `cd api-sales; php artisan test`.
 
-Abre la dirección que Angular CLI muestre en la terminal (normalmente `http://localhost:4200`). Para compilar una versión de producción ejecuta `npm run build`; el resultado se genera en `app-sales/dist/`.
+## Cómo funciona
 
-## Rutas de la API
+- Angular consulta productos y ventas a la API y presenta el catálogo, el carrito y el historial.
+- Al confirmar la compra, la interfaz envía `user_id` e ítems (producto, cantidad y descuento) a Laravel.
+- Laravel valida los datos y el descuento (0–10%), verifica y bloquea el inventario dentro de una transacción, calcula los importes y registra la venta y sus detalles. Si falta stock, la operación completa se rechaza sin crear una venta parcial.
+- Al eliminar una venta, la API elimina sus detalles y devuelve las unidades al inventario.
+- MySQL conserva productos, ventas y detalles. La moneda presentada por la interfaz es BOB (bolivianos).
 
-Todas las rutas usan el prefijo `/api`:
+El seeder crea dos usuarios de demostración (`admin@test.com` y `master@test.com`, ambos con contraseña `password`) y productos de muestra. La API actual no implementa autenticación y la creación de ventas está limitada al usuario con ID 1; estas credenciales son únicamente para desarrollo local.
+
+## API
+
+Todas las rutas aceptan/responden JSON y usan el prefijo `/api`.
 
 | Método | Ruta | Descripción |
 | --- | --- | --- |
-| `GET` | `/products` | Lista los productos disponibles y su stock. |
-| `POST` | `/sales` | Registra una venta con un arreglo `items` de `product_id` y `quantity`. |
-| `GET` | `/sales` | Lista las ventas y sus detalles. |
-| `DELETE` | `/sales/{id}` | Elimina una venta existente. |
+| `GET` | `/api/test` | Estado y versión de la API |
+| `GET` | `/api/products` | Lista de productos, precios y existencias |
+| `GET` | `/api/sales` | Historial con totales y detalles |
+| `POST` | `/api/sales` | Registra una venta y descuenta existencias |
+| `DELETE` | `/api/sales/{id}` | Elimina una venta y restituye existencias |
 
-Ejemplo para registrar una venta, enviado como JSON a `http://127.0.0.1:8000/api/sales`:
+Ejemplo de cuerpo para crear una venta:
 
 ```json
 {
   "user_id": 1,
   "items": [
-    { "product_id": 1, "quantity": 2 },
-    { "product_id": 3, "quantity": 1 }
+    { "product_id": 1, "quantity": 2, "discount_percent": 10 }
   ]
 }
 ```
 
-El usuario de la prueba estática es `1`. Los identificadores de productos válidos dependen de los datos cargados por los seeders. La API obtiene los precios de la base de datos; no se deben enviar en la solicitud.
-
-## Comandos útiles
-
-- Reiniciar tablas y datos de ejemplo: `cd api-sales && php artisan migrate:fresh --seed` (elimina los datos existentes de esa base de datos).
-- Inspeccionar rutas Laravel: `cd api-sales && php artisan route:list --path=api`.
-- Limpiar cachés de Laravel: `cd api-sales && php artisan optimize:clear`.
-- Compilar Angular: `cd app-sales && npm run build`.
-
-En PowerShell, ejecuta cada comando de la lista por separado; `&&` puede sustituirse por una nueva línea.
-
-## Solución de problemas
-
-- **No conecta a MySQL:** confirma que el servicio está activo y que los valores `DB_*` de `api-sales/.env` coinciden con tu instalación.
-- **No encuentra las tablas:** desde `api-sales`, ejecuta `php artisan migrate --seed`.
-- **No encuentra Composer o PHP:** instala PHP 8.2+ y Composer 2 y vuelve a abrir la terminal.
-- **Falla `npm ci`:** usa Node.js 18.13+ y ejecuta el comando dentro de `app-sales`, donde está `package-lock.json`.
-- **El puerto está ocupado:** inicia Laravel con `php artisan serve --port=8001` o Angular con `npm start -- --port 4300`.
+La cantidad debe ser un entero positivo, no se puede repetir un producto en los ítems y el descuento admite hasta dos decimales entre 0 y 10. Los datos inválidos o el stock insuficiente devuelven `422`; una creación correcta devuelve `201`. Se incluye una colección de Postman en `postman/Mercatech API.postman_collection.json`; importa el archivo y usa `http://localhost:8080` como `baseUrl` con Docker o `http://127.0.0.1:8000` en desarrollo local.
 
 ## Estructura
 
-```text
-api-sales/   API Laravel, migraciones y seeders
-app-sales/   Aplicación web Angular
-```
+- `app-sales/`: aplicación Angular, estilos, proxy y configuración de Nginx.
+- `api-sales/`: API Laravel, modelos, controladores, migraciones y seeders.
+- `postman/`: colección para probar los endpoints.
+- `docker-compose.yml`: servicios de MySQL, API y web.
 
-Cada aplicación conserva también su propio `README.md` con información del framework.
-=======
-# ADRIANAALVAREZ
-PRUEBA TECNICA
->>>>>>> b5601123179a6e3db3978bdc4a15e86e088c13d8
+Para un despliegue real, define claves y contraseñas propias mediante variables de entorno y habilita HTTPS. No uses las credenciales locales de demostración en producción.

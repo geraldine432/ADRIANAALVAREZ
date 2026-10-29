@@ -1,0 +1,98 @@
+{
+    "info":  {
+                 "_postman_id":  "d611bc30-411d-4f70-b9a4-29a106f97286",
+                 "name":  "Mercatech - API de ventas",
+                 "description":  "Pruebas de la API Laravel de productos y ventas. Cambia baseUrl segun ejecutes con Docker o php artisan serve.",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "variable":  [
+                     {
+                         "key":  "baseUrl",
+                         "value":  "http://localhost:8080"
+                     },
+                     {
+                         "key":  "saleId",
+                         "value":  "1"
+                     }
+                 ],
+    "item":  [
+                 {
+                     "name":  "Estado de la API",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  "{{baseUrl}}/api/test"
+                                 }
+                 },
+                 {
+                     "name":  "Listar productos",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  "{{baseUrl}}/api/products"
+                                 }
+                 },
+                 {
+                     "name":  "Crear venta",
+                     "event":  [
+                                   {
+                                       "listen":  "test",
+                                       "script":  {
+                                                      "type":  "text/javascript",
+                                                      "exec":  [
+                                                                   "if (pm.response.code === 201) {",
+                                                                   "  const body = pm.response.json();",
+                                                                   "  pm.collectionVariables.set(\u0027saleId\u0027, body.sale_id);",
+                                                                   "}"
+                                                               ]
+                                                  }
+                                   }
+                               ],
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    },
+                                                    {
+                                                        "key":  "Accept",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\n  \"user_id\": 1,\n  \"items\": [\n    { \"product_id\": 1, \"quantity\": 2 },\n    { \"product_id\": 3, \"quantity\": 1 }\n  ]\n}"
+                                              },
+                                     "url":  "{{baseUrl}}/api/sales"
+                                 }
+                 },
+                 {
+                     "name":  "Listar ventas",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+
+                                                ],
+                                     "url":  "{{baseUrl}}/api/sales"
+                                 }
+                 },
+                 {
+                     "name":  "Eliminar venta (restaura stock)",
+                     "request":  {
+                                     "method":  "DELETE",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Accept",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "url":  "{{baseUrl}}/api/sales/{{saleId}}"
+                                 }
+                 }
+             ]
+}
