@@ -87,3 +87,5 @@ body { background: #f3f7f5; color: var(--ink); }
 .order-discount-button { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 7px; margin: 0 0 12px; padding: 9px 12px; border: 1px solid #c7e4dc; border-radius: 6px; background: #f2fbf7; color: #087f73; font: 600 11px 'DM Sans', sans-serif; cursor: pointer; }
 .order-discount-button:hover { background: #e7f7f0; border-color: #12a594; }
 .order-discount-button i { font-size: 14px; }
+
+.item-savings { color: #087f73 !important; font-size: 9px !important; font-weight: 700; }
